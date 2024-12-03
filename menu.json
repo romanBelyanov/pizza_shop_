@@ -1,0 +1,70 @@
+{
+    "menu": {
+        "pizzas": [
+            {
+                "name": "Margherita",
+                "price": 450,
+                "key": 1,
+                "kol": 9
+            },
+            {
+                "name": "Pepperoni",
+                "price": 400,
+                "key": 2,
+                "kol": 8
+            },
+            {
+                "name": "Hawaiian",
+                "price": 500,
+                "key": 3,
+                "kol": 8
+            },
+            {
+                "name": "Vegetarian",
+                "price": 450,
+                "key": 4,
+                "kol": 8
+            }
+        ],
+        "drinks": [
+            {
+                "name": "Coca-Cola",
+                "price": 150,
+                "key": 5,
+                "kol": 9
+            },
+            {
+                "name": "Sprite",
+                "price": 150,
+                "key": 6,
+                "kol": 9
+            },
+            {
+                "name": "Mineral Water",
+                "price": 80,
+                "key": 7,
+                "kol": 8
+            }
+        ],
+        "alcohol": [
+            {
+                "name": "Beer",
+                "price": 200,
+                "key": 8,
+                "kol": 8
+            },
+            {
+                "name": "Wine",
+                "price": 800,
+                "key": 9,
+                "kol": 8
+            },
+            {
+                "name": "Mojito",
+                "price": 400,
+                "key": 10,
+                "kol": 9
+            }
+        ]
+    }
+}
