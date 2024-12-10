@@ -4,6 +4,11 @@
             "login": "roman",
             "password": "123",
             "age": 20
+        },
+        {
+            "login": "admin",
+            "password": "admin123",
+            "age": 19
         }
     ]
 }
