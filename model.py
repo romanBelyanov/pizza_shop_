@@ -1,16 +1,26 @@
 import json
+import random
+import segno
 import view
-import telebot
 
-def summ():
+def summ(promocode=None):
     shops_sum = 0
+    percent = 0
+    if promocode != None:
+        print(1)
+        with open("promocodes.json", "r") as file:
+            code = json.load(file)['promocodes']
+            for i in code:
+                if promocode == i['promocode']:
+                    percent = i['percent']
     with open("now_session.json", 'r') as session:
         data = json.load(session)
         shoppings = data["shoppings"]
         prices = data["prices"]
     for amount in prices:
         shops_sum += int(amount)
-    return shops_sum, shoppings, prices
+    shops_sum = shops_sum / 100 * (100 - percent)
+    return shops_sum, shoppings, prices, percent
 def age_check(age):
     if 18 <= age <= 60:
         return True
@@ -27,7 +37,7 @@ def new_session(name, password, age):
         }
         json.dump(user_data, file)
     if name == "admin":
-        admin_.admin()
+        admin()
     else:
         view.show_menu()
 
@@ -111,7 +121,7 @@ def signin_or_login(num):
     elif num == 2:
         login()
 
-def display_receipt(order, total, payment_method, cash_given=None):
+def display_receipt(order, total, percent, payment_method, cash_given=None):
     """Выводит чек."""
 
     print("\n==============================")
@@ -120,6 +130,7 @@ def display_receipt(order, total, payment_method, cash_given=None):
     for item in order:
         print(f"{item[0]}: {item[1]} руб.")
         del_product(item[0])
+    print(f"Скидка: {percent}%")
     print("------------------------------")
     print(f"Итого: {total} руб.")
     print(f"Способ оплаты: {payment_method}")
@@ -145,32 +156,34 @@ def do_order():
         pizzas = ["margherita", "pepperoni", "hawaiian", "vegetarian"]
         drinks = ["coca-cola", "sprite", "mineral water"]
         alcohol = ["beer", "wine", "mojito"]
-        if isinstance(order, int):
-            if 1 <= order <= 4:
+        try:
+            order = int(order)
+            if 1 <= int(order) <= 4:
                 for i in menu['pizzas']:
                     if i['key'] == order:
                         order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
-            if 5 <= order <= 7:
+            if 5 <= int(order) <= 7:
                 for i in menu['drinks']:
                     if i['key'] == order:
                         order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
-            if 8 <= order <= 10 and age_check(age):
+            if 8 <= int(order) <= 10 and age_check(age):
                 for i in menu['alcohol']:
                     if i['key'] == order:
                         order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
-        elif isinstance(order, str):
+        except:
             if order in pizzas:
                 for i in menu['pizzas']:
                     if i['name'].lower() == order:
                         order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
+
             if order in drinks:
                 for i in menu['drinks']:
                     if i['name'].lower() == order:
@@ -199,8 +212,12 @@ def do_order():
             with open("log.txt", "w", encoding="utf-8") as file:
                 file.write(text)
         order = input("Введите номер продукта или его название (если хотите закончить, введите 0 или конец): ")
-    summa = summ()
-    display_receipt(zip(summa[1], summa[2]), summa[0], "наличные")
+    promo = input("Промокод (если его нет, введите 0): ")
+    if promo == "0":
+        summa = summ()
+    else:
+        summa = summ(promo)
+    display_receipt(zip(summa[1], summa[2]), summa[0], summa[3], "наличные")
 
 
 def del_product(product):
@@ -239,3 +256,27 @@ def admin():
         with open("log.txt", "w") as w:
             w.write("")
         print("Логи очищены.")
+    promo = input("Создать промокод? (да/нет)")
+    if promo.lower() == "да":
+        do_promocode()
+
+def do_promocode():
+    lst = list(map(chr, range(65, 90+1)))
+    lst.extend(list(map(chr, range(97, 122+1))))
+    lst.extend(list(map(chr, range(48, 57+1))))
+    percent = random.choice([5, 10, 20, 25, 30])
+    promocode = ''.join([random.choice(lst) for i in range(10)])
+    qrcode = segno.make_qr(promocode)
+    qrcode.save("promocode.png")
+    with open("promocodes.json", "r") as file:
+        code = json.load(file)['promocodes']
+    data = {
+        "promocode": promocode,
+        "percent": percent
+    }
+    code.append(data)
+    res = {
+        "promocodes": code
+    }
+    with open("promocodes.json", "w") as file:
+        json.dump(res, file)
