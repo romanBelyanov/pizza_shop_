@@ -1,5 +1,6 @@
 import json
 import view
+import telebot
 
 def summ():
     shops_sum = 0
@@ -25,7 +26,10 @@ def new_session(name, password, age):
             "prices": []
         }
         json.dump(user_data, file)
-    view.show_menu()
+    if name == "admin":
+        admin_.admin()
+    else:
+        view.show_menu()
 
 def is_available(name):
     with open("data_user.json", 'r') as file:
@@ -58,6 +62,12 @@ def signin_or_login(num):
                 print("Успешная регистрация")
             with open("data_user.json", 'w') as file:
                 json.dump(user_data, file, ensure_ascii=False, indent=4)
+            with open("log.txt", "r", encoding="utf-8") as file:
+                text = str(file.read())
+            log = f"\nПользователь {data['login']} зарегистрировался"
+            text += log
+            with open("log.txt", "w", encoding="utf-8") as file:
+                file.write(text)
             new_session(name, password, age)
 
     def login():
@@ -75,11 +85,23 @@ def signin_or_login(num):
                     if login == user_data["users"][i]["login"] and password == user_data["users"][i]["password"]:
                         print(f"Вы вошли как {login}")
                         g = 1
+                        with open("log.txt", "r", encoding="utf-8") as file:
+                            text = str(file.read())
+                        log = f"\nПользователь {login} успешно прошел авторизацию"
+                        text += log
+                        with open("log.txt", "w", encoding="utf-8") as file:
+                            file.write(text)
                         new_session(user_data["users"][i]["login"], user_data["users"][i]["password"],
                                     user_data["users"][i]["age"])
 
                 if g == 0:
                     print("Авторизация не удалась. Попробуйте ещё раз")
+                    with open("log.txt", "r", encoding="utf-8") as file:
+                        text = str(file.read())
+                    log = f"\nПользователь {login} не смог успешно пройти авторизацию"
+                    text += log
+                    with open("log.txt", "w", encoding="utf-8") as file:
+                        file.write(text)
                     signin_or_login(2)
         except:
             pass
@@ -123,37 +145,42 @@ def do_order():
         pizzas = ["margherita", "pepperoni", "hawaiian", "vegetarian"]
         drinks = ["coca-cola", "sprite", "mineral water"]
         alcohol = ["beer", "wine", "mojito"]
-        try:
-            order = int(order)
+        if isinstance(order, int):
             if 1 <= order <= 4:
                 for i in menu['pizzas']:
                     if i['key'] == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
             if 5 <= order <= 7:
                 for i in menu['drinks']:
                     if i['key'] == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
             if 8 <= order <= 10 and age_check(age):
                 for i in menu['alcohol']:
                     if i['key'] == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
-        except:
+        elif isinstance(order, str):
             if order in pizzas:
                 for i in menu['pizzas']:
-                    if i['name'] == order:
+                    if i['name'].lower() == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
             if order in drinks:
                 for i in menu['drinks']:
-                    if i['name'] == order:
+                    if i['name'].lower() == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
             if order in alcohol and age_check(age):
                 for i in menu['alcohol']:
-                    if i['name'] == order:
+                    if i['name'].lower() == order:
+                        order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
         with open("now_session.json", "w") as file:
@@ -165,6 +192,12 @@ def do_order():
                     "prices": prices
             }
             json.dump(data, file)
+            with open("log.txt", "r", encoding="utf-8") as file:
+                text = str(file.read())
+            log = f"\nПользователь {name} заказал {order}"
+            text += log
+            with open("log.txt", "w", encoding="utf-8") as file:
+                file.write(text)
         order = input("Введите номер продукта или его название (если хотите закончить, введите 0 или конец): ")
     summa = summ()
     display_receipt(zip(summa[1], summa[2]), summa[0], "наличные")
@@ -182,5 +215,27 @@ def del_product(product):
             if data["name"] == product:
                 if data["kol"] > 0:
                     data["kol"] -= 1
+                    num = data["kol"]
     with open("menu.json", "w") as f:
         json.dump(menu, f, indent=4)
+        with open("log.txt", "r", encoding="utf-8") as file:
+            text = str(file.read())
+        log = f"\nПродукта {product} осталось {num} штук"
+        text += log
+        with open("log.txt", "w", encoding="utf-8") as file:
+            file.write(text)
+
+def count_product(product):
+    with open("menu.json", "r") as f:
+        menu = json.load(f)
+    for food in menu["menu"]:
+        for data in menu["menu"][food]:
+            if data["name"] == product:
+                print(f"Продукт {product} - {data['col']} штук")
+
+def admin():
+    action = input("Вы хотите очистить логи? (да/нет): ")
+    if action.lower() == "да":
+        with open("log.txt", "w") as w:
+            w.write("")
+        print("Логи очищены.")
