@@ -121,15 +121,27 @@ def signin_or_login(num):
     elif num == 2:
         login()
 
+
 def display_receipt(order, total, percent, payment_method, cash_given=None):
     """Выводит чек."""
-
-    print("\n==============================")
+    dct = {}
+    prices = {}
+    for item in order:
+        if item[0] in list(dct.keys()):
+            dct[item[0]] = dct[item[0]] + 1
+        else:
+            dct[item[0]] = 1
+        prices[item[0]] = item[1]
+    print("==============================")
     print("            Ваш чек:         ")
     print("------------------------------")
-    for item in order:
-        print(f"{item[0]}: {item[1]} руб.")
-        del_product(item[0])
+    for item in range(len(dct)):
+        keys = list(dct.keys())
+        values = list(dct.values())
+        prices_lst = list(prices.values())
+        print(f"{keys[item]} x {values[item]}: {values[item] * prices_lst[item]} руб.")
+        for i in range(values[item]):
+            del_product(keys[item])
     print(f"Скидка: {percent}%")
     print("------------------------------")
     print(f"Итого: {total} руб.")
@@ -164,6 +176,22 @@ def do_order():
                         order = i['name']
                         shops.append(i['name'])
                         prices.append(i['price'])
+                        add = input("Хотите ли вы добавку к пицце(если нет, введите 0):")
+                        if add == 0:
+                            pass
+                        else:
+                            try:
+                                add = int(add)
+                                for j in i['adds']:
+                                    if j['key'] == add:
+                                        shops.append(j['name'])
+                                        prices.append(j['price'])
+                            except:
+                                for j in i['adds']:
+                                    if j['name'].lower() == add:
+                                        add = j['name']
+                                        shops.append(j['name'])
+                                        prices.append(j['price'])
             if 5 <= int(order) <= 7:
                 for i in menu['drinks']:
                     if i['key'] == order:
@@ -232,7 +260,13 @@ def del_product(product):
             if data["name"] == product:
                 if data["kol"] > 0:
                     data["kol"] -= 1
-                    num = data["kol"]
+                num = data["kol"]
+    for i in menu['menu']['pizzas']:
+        for add in i['adds']:
+            if add['name'] == product:
+                if add['kol'] > 0:
+                    add['kol'] -= 1
+                num = add['kol']
     with open("menu.json", "w") as f:
         json.dump(menu, f, indent=4)
         with open("log.txt", "r", encoding="utf-8") as file:
@@ -256,9 +290,12 @@ def admin():
         with open("log.txt", "w") as w:
             w.write("")
         print("Логи очищены.")
-    promo = input("Создать промокод? (да/нет)")
+    promo = input("Создать промокод? (да/нет): ")
     if promo.lower() == "да":
         do_promocode()
+    history = input("Просмотреть остаток продуктов на складе? (да/нет): ")
+    if history.lower() == "да":
+        count_product()
 
 def do_promocode():
     lst = list(map(chr, range(65, 90+1)))
